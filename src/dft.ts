@@ -1,11 +1,10 @@
 import { type AtPoint, type Coord, type EpicycleCircle, type EpicycleState } from './types';
-import * as math from 'mathjs';
 
-// DFT stands for discrete fourier e-pi-cycle
+// DFT stands for discrete fourier transform
 export class Dft {
   private startCoords: Coord;
 
-  private readonly coefficients: { freq: number, val: math.Complex }[] = [];
+  private readonly coefficients: { freq: number, re: number, im: number }[] = [];
   get nonempty() { return !!this.coefficients.length }
   public empty() { this.coefficients.length = 0 }
 
@@ -73,27 +72,33 @@ export class Dft {
 
     // Loop from -N/2 to N/2
     for (let n = startFreq; n < endFreq; n++) {
-      let coefficientsSum = math.complex(0, 0);
-      for (let k = 0; k < N; k++) {
-        // compute DFT
-        const signal = math.complex(coords[k][0] - this.startCoords[0], coords[k][1] - this.startCoords[1]);
-        const exponent = math.complex(0, -2 * math.pi * n * k / N);
-        const sinusoid = math.exp(exponent);
+      let sumRe = 0;
+      let sumIm = 0;
 
-        // add to coefficient
-        const contribution = math.multiply(signal, sinusoid);
-        coefficientsSum = math.add(contribution, coefficientsSum) as math.Complex;
+      for (let k = 0; k < N; k++) {
+        // compute DFT using basic trigonometry
+        const signalRe = coords[k][0] - this.startCoords[0];
+        const signalIm = coords[k][1] - this.startCoords[1];
+
+        const theta = -2 * Math.PI * n * k / N;
+        const cosTheta = Math.cos(theta);
+        const sinTheta = Math.sin(theta);
+
+        // complex multiplication equivalent: (signalRe + i*signalIm) * (cosTheta + i*sinTheta)
+        sumRe += signalRe * cosTheta - signalIm * sinTheta;
+        sumIm += signalRe * sinTheta + signalIm * cosTheta;
       }
 
       // add to coef arrays
       this.coefficients.push({
         freq: n, // this allows safely sorting the array
-        val: math.divide(coefficientsSum, N) as math.Complex
+        re: sumRe / N,
+        im: sumIm / N
       });
     }
 
-    // sort by magnitude
-    this.coefficients.sort((a, b) => math.abs(b.val) - math.abs(a.val));
+    // sort by magnitude using Math.hypot (which natively calculates sqrt(re^2 + im^2))
+    this.coefficients.sort((a, b) => Math.hypot(b.re, b.im) - Math.hypot(a.re, a.im));
   }
 
   public getStateAtTime(t: number): EpicycleState {
@@ -105,16 +110,20 @@ export class Dft {
     //* compute circles
     for (let i = 0; i < N; i++) {
       const lastCoord = circles.at(-1)![0];
-      const { freq, val } = this.coefficients[i];
+      const { freq, re, im } = this.coefficients[i];
 
       // maths and etc
-      const exponent = math.complex(0, 2 * math.pi * freq * t);
-      const sinusoid = math.exp(exponent);
-      const circle = math.multiply(val, sinusoid) as math.Complex;
+      const theta = 2 * Math.PI * freq * t;
+      const cosTheta = Math.cos(theta);
+      const sinTheta = Math.sin(theta);
+
+      // complex multiplication equivalent
+      const circleRe = re * cosTheta - im * sinTheta;
+      const circleIm = re * sinTheta + im * cosTheta;
 
       // circle characteristics
-      const nextVector: Coord = [circle.re + lastCoord[0], circle.im + lastCoord[1]];
-      const circleRadius = math.abs(circle);
+      const nextVector: Coord = [circleRe + lastCoord[0], circleIm + lastCoord[1]];
+      const circleRadius = Math.hypot(circleRe, circleIm);
 
       // update previous circle radius
       circles.at(-1)![1] = circleRadius
