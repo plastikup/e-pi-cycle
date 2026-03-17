@@ -13,6 +13,7 @@ export type EpicycleCircle = [Coord, number];
 export interface EpicycleState {
   circles: EpicycleCircle[];
   drawCoord: Coord;
+  suggestedNextT: number;
 }
 
 

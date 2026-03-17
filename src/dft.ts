@@ -126,6 +126,9 @@ export class Dft {
     // last circle isn't one; its the drawn pixel
     const drawCoord = circles.pop()![0];
 
-    return { circles, drawCoord };
+    // suggested next t tries to iterate on every element of the coef list
+    const suggestedNextT = t + 1 / N;
+
+    return { circles, drawCoord, suggestedNextT };
   }
 }

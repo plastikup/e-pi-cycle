@@ -5,9 +5,7 @@ import { DISTANCE_BETWEEN_STROKE_COORDS } from "./main";
 
 export class EpicyclePen {
   private pen: Pen;
-  private firstStrokeTimestamp: number = 0;
-  private queueFirstStrokeTimestampReset: boolean = false;
-  private static DFT_ANIMATION_LENGTH_TS = 7_000;
+  private progressT: number = 0;
 
   private readonly pathCoords: Coord[] = [];
   private getEpicycleAtTime: (t: number) => EpicycleState;
@@ -21,21 +19,15 @@ export class EpicyclePen {
   }
 
   public resetCounter() {
-    this.queueFirstStrokeTimestampReset = true;
+    this.progressT = 0
     this.pathCoords.length = 0;
   }
 
   public draw() {
-    // reset counter if new path
-    if (this.queueFirstStrokeTimestampReset) {
-      this.firstStrokeTimestamp = Date.now();
-      this.queueFirstStrokeTimestampReset = false;
-    }
-
     // get content to draw
-    const progress = ((Date.now() - this.firstStrokeTimestamp) / EpicyclePen.DFT_ANIMATION_LENGTH_TS) % 1;
-    const isFirstIteration = Date.now() - this.firstStrokeTimestamp <= EpicyclePen.DFT_ANIMATION_LENGTH_TS;
-    const { circles, drawCoord } = this.getEpicycleAtTime(progress);
+    const { circles, drawCoord, suggestedNextT } = this.getEpicycleAtTime(this.progressT);
+    const isFirstIteration = this.progressT <= 1;
+    this.progressT = suggestedNextT;
 
     // only save coords once in a while
     if (isFirstIteration && (
