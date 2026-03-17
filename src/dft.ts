@@ -1,4 +1,4 @@
-import { type Coord, type EpicycleCircle, type EpicycleState } from './types';
+import { type AtPoint, type Coord, type EpicycleCircle, type EpicycleState } from './types';
 import * as math from 'mathjs';
 
 // DFT stands for discrete fourier e-pi-cycle
@@ -43,12 +43,25 @@ export class Dft {
     return smoothCoords;
   }
 
-  public computeDftFromNewCoords(roughCoords: Coord[]) {
+  public recomputeFromCoords(roughCoords: Coord[]) {
     if (roughCoords.length == 0) throw new Error('Tried computing from an empty array of coordinates.');
 
     // smooth out coords to be Dft.SAMPLES length or more
     roughCoords.push(roughCoords.at(0)!);
     const coords = this.interpolateCoords(roughCoords);
+
+    this.computeCoefficients(coords);
+  }
+
+  public recomputeFromAtPointFunction(atPoint: AtPoint, samplesOverwrite?: number) {
+    const coords: Coord[] = Array.from({ length: samplesOverwrite ?? Dft.SAMPLES }, (_, i) => {
+      const point = atPoint(i / (samplesOverwrite ?? Dft.SAMPLES));
+      return [point.x, point.y]
+    });
+    this.computeCoefficients(coords);
+  }
+
+  private computeCoefficients(coords: Coord[]) {
     const N = coords.length;
 
     // empty arrays to build new ones

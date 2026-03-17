@@ -14,3 +14,12 @@ export interface EpicycleState {
   circles: EpicycleCircle[];
   drawCoord: Coord;
 }
+
+
+export interface SvgTemplate {
+  name: string;
+  path: string;
+  data: string;
+}
+
+export type AtPoint = (atPoint: number) => DOMPoint;
