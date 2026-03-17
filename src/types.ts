@@ -23,4 +23,4 @@ export interface SvgTemplate {
   data: string;
 }
 
-export type AtPoint = (atPoint: number) => DOMPoint;
+export type AtPoint = (atPoint: number) => Coord;

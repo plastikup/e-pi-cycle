@@ -53,10 +53,10 @@ export class Dft {
   }
 
   public recomputeFromAtPointFunction(atPoint: AtPoint, samplesOverwrite?: number) {
-    const coords: Coord[] = Array.from({ length: samplesOverwrite ?? Dft.SAMPLES }, (_, i) => {
-      const point = atPoint(i / (samplesOverwrite ?? Dft.SAMPLES));
-      return [point.x, point.y]
-    });
+    const coords: Coord[] = Array.from(
+      { length: samplesOverwrite ?? Dft.SAMPLES },
+      (_, i) => atPoint(i / (samplesOverwrite ?? Dft.SAMPLES)),
+    );
     this.computeCoefficients(coords);
   }
 
@@ -105,7 +105,7 @@ export class Dft {
     const N = this.coefficients.length;
     if (N == 0) throw new Error('Tried compiling from an empty array of coefficients.');
 
-    const circles: EpicycleCircle[] = [ [this.startCoords, 0] ];
+    const circles: EpicycleCircle[] = [[this.startCoords, 0]];
 
     //* compute circles
     for (let i = 0; i < N; i++) {

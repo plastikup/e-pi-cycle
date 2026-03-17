@@ -30,7 +30,7 @@ export class TemplatesHandler {
       .filter((t): t is SvgTemplate => !!t);
   }
 
-  public renderTemplates(container: Element, svgWidth: number, svgHeight: number) {
+  public renderTemplates(container: Element, canvas: HTMLCanvasElement, svgWidth: number, svgHeight: number) {
     const parser = new DOMParser();
 
     for (const template of this.templates) {
@@ -55,23 +55,39 @@ export class TemplatesHandler {
     }
 
     //* return a record of 'svg names -> atPoint function'
-    return this.compileAtPointFunctions(container);
+    return this.compileAtPointFunctions(container, canvas);
   }
 
-  private compileAtPointFunctions(container: Element) {
+  private compileAtPointFunctions(container: Element, canvas: HTMLCanvasElement) {
+    const { width: canvasWidth, height: canvasHeight } = canvas.getBoundingClientRect();
     const svgs = container.querySelectorAll('svg');
 
     const shapeAtPoint: Record<string, AtPoint> = {};
     for (const svgElement of svgs) {
       const name = svgElement.id;
+
+      // get path of the svg, assuming all svg only have one single layer
+      // for the simplicity of this project, it is safe to assume any provided svg will only have one layer
       const pathElement = svgElement.querySelector('path');
       if (!pathElement) {
-        console.error(`Skipped AtPoint compilation of ${name} svg.`);
+        console.error(`Skipped AtPoint compilation of ${name} svg because no path data can be found.`);
         continue;
       }
 
+      // centering the svg
+      const { width, height } = svgElement.getBBox();
+      const offsetX = (canvasWidth - width) / 2
+      const offsetY = (canvasHeight - height) / 2;
+
+      console.log(name, offsetX, offsetY);
+      console.log(canvasWidth, canvasHeight, width, height, canvas.getBoundingClientRect());
+
+      // compile custom atPoint function for current svg
       const length = pathElement.getTotalLength();
-      shapeAtPoint[name] = (atPoint: number) => pathElement.getPointAtLength(atPoint * length);
+      shapeAtPoint[name] = (atPoint: number) => {
+        const { x, y } = pathElement.getPointAtLength(atPoint * length);
+        return [x + offsetX, y + offsetY];
+      }
     }
 
     return shapeAtPoint;

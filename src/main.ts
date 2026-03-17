@@ -16,15 +16,15 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id='templatesContainer' style="display: flex; justify-content: space-evenly;"></div>
 `;
 
-// initialize templates
-const templatesHandler = new TemplatesHandler('./assets/pi-templates/');
-const templatesContainer = document.querySelector('#templatesContainer')!;
-const shapeAtPoint = templatesHandler.renderTemplates(templatesContainer, 128, 128);
-
 // initialize drawing board
 const canvas = document.querySelector('canvas')!;
 const ctx = canvas.getContext('2d')!;
 ctx.font = '21px Arial';
+
+// initialize templates
+const templatesHandler = new TemplatesHandler('./assets/pi-templates/');
+const templatesContainer = document.querySelector('#templatesContainer')!;
+const shapeAtPoint = templatesHandler.renderTemplates(templatesContainer, canvas, 128, 128);
 
 // initialize classes and capturers
 const pen = new Pen(canvas, ctx);
