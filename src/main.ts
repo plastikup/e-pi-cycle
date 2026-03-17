@@ -13,13 +13,13 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <canvas width=768 height=768></canvas>
   </div>
-  <div id='templatesContainer'></div>
+  <div id='templatesContainer' style="display: flex; justify-content: space-evenly;"></div>
 `;
 
 // initialize templates
 const templatesHandler = new TemplatesHandler('./assets/pi-templates/');
 const templatesContainer = document.querySelector('#templatesContainer')!;
-const shapeAtPoint = templatesHandler.renderTemplates(templatesContainer, 256, 256);
+const shapeAtPoint = templatesHandler.renderTemplates(templatesContainer, 128, 128);
 
 // initialize drawing board
 const canvas = document.querySelector('canvas')!;
